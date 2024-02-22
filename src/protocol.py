@@ -2,7 +2,6 @@
 
 import json
 import time
-from datetime import datetime
 from socket import socket
 
 
@@ -75,10 +74,29 @@ class CDProto:
     @classmethod
     def send_msg(cls, connection: socket, msg: Message):
         """Sends through a connection a Message object."""
+        msg = json.dumps(msg).encode()
+        header = len(msg).to_bytes(2, byteorder="big")
+        connection.send(header + msg)
 
     @classmethod
     def recv_msg(cls, connection: socket) -> Message:
         """Receives through a connection a Message object."""
+        size = int.from_bytes(connection.recv(2), byteorder="big")
+        msg = connection.recv(size)
+
+        try:
+            json_msg: dict = json.loads(msg.decode())
+        except json.JSONDecodeError:
+            raise CDProtoBadFormat(msg)
+
+        if json_msg["command"] == "register":
+            return cls.register(json_msg["user"])
+        if json_msg["command"] == "join":
+            return cls.join(json_msg["channel"])
+        if json_msg["command"] == "message":
+            if "channel" in json_msg:
+                return cls.message(json_msg["message"], json_msg["channel"])
+            return cls.message(json_msg["message"])
 
 
 class CDProtoBadFormat(Exception):
