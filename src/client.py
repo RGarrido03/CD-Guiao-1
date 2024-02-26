@@ -1,8 +1,10 @@
 """CD Chat client program"""
+
 import logging
+import socket
 import sys
 
-from .protocol import CDProto, CDProtoBadFormat
+from .protocol import CDProto, Message
 
 logging.basicConfig(filename=f"{sys.argv[0]}.log", level=logging.DEBUG)
 
@@ -12,12 +14,16 @@ class Client:
 
     def __init__(self, name: str = "Foo"):
         """Initializes chat client."""
-        pass
+        self.host = "127.0.0.1"
+        self.port = 8000
+
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect(self):
         """Connect to chat server and setup stdin flags."""
-        pass
+        self.socket.connect((self.host, self.port))
 
     def loop(self):
         """Loop indefinetely."""
-        pass
+        while True:
+            pass
