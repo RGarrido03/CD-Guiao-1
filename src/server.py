@@ -24,20 +24,20 @@ class Server:
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.socket, selectors.EVENT_READ, self.accept)
 
-    def accept(self, sock: socket.socket, _: int) -> None:
-        conn, addr = sock.accept()
+    def accept(self, conn: socket.socket, mask: int) -> None:
+        conn, addr = conn.accept()
         logging.debug(f"Accepted connection from {addr}")
         conn.setblocking(False)
         self.selector.register(conn, selectors.EVENT_READ, self.read)
 
-    def read(self, sock: socket.socket, _: int) -> None:
+    def read(self, conn: socket.socket, mask: int) -> None:
         try:
-            msg = CDProto.recv_msg(sock)
+            msg = CDProto.recv_msg(conn)
             print(msg)
         except CDProtoBadFormat as e:
             print(f"Bad format in message '{e.original_msg}'. Closing...")
-            self.selector.unregister(sock)
-            sock.close()
+            self.selector.unregister(conn)
+            conn.close()
 
     def loop(self) -> None:
         """Loop indefinetely."""
