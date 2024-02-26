@@ -4,7 +4,7 @@ import logging
 import selectors
 import socket
 
-from .protocol import CDProto
+from .protocol import CDProto, CDProtoBadFormat
 
 logging.basicConfig(filename="server.log", level=logging.DEBUG)
 
@@ -31,8 +31,13 @@ class Server:
         self.selector.register(conn, selectors.EVENT_READ, self.read)
 
     def read(self, sock: socket.socket, _: int) -> None:
-        msg = CDProto.recv_msg(sock)
-        print(msg)
+        try:
+            msg = CDProto.recv_msg(sock)
+            print(msg)
+        except CDProtoBadFormat as e:
+            print(f"Bad format in message '{e.original_msg}'. Closing...")
+            self.selector.unregister(sock)
+            sock.close()
 
     def loop(self) -> None:
         """Loop indefinetely."""
