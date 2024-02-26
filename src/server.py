@@ -19,6 +19,7 @@ class Server:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         self.socket.listen(1000)
+        self.socket.setblocking(False)
 
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.socket, selectors.EVENT_READ, self.accept)
@@ -26,6 +27,7 @@ class Server:
     def accept(self, sock: socket.socket, _: int) -> None:
         conn, addr = sock.accept()
         logging.debug(f"Accepted connection from {addr}")
+        conn.setblocking(False)
         self.selector.register(conn, selectors.EVENT_READ, self.read)
 
     def read(self, sock: socket.socket, _: int) -> None:
