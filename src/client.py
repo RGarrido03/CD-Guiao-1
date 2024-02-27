@@ -32,20 +32,24 @@ class Client:
         msg = CDProto.register(self.name)
         CDProto.send_msg(self.socket, msg)
 
+    def got_keyboard_data(self, stdin) -> None:
+        """
+        Create message object and send it upon keyboard data.
+        @param stdin: Standard input
+        @return: None
+        """
+        s: str = stdin.read()
+        msg = CDProto.message(s.strip(), self.channel)
+        CDProto.send_msg(self.socket, msg)
+
     def loop(self):
         """Loop indefinetely."""
         # set sys.stdin non-blocking
         orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
         fcntl.fcntl(sys.stdin, fcntl.F_SETFL, orig_fl | os.O_NONBLOCK)
 
-        # function to be called when enter is pressed
-        def got_keyboard_data(stdin):
-            s: str = stdin.read()
-            msg = CDProto.message(s.strip(), self.channel)
-            CDProto.send_msg(self.socket, msg)
-
         # register event
-        self.selectors.register(sys.stdin, selectors.EVENT_READ, got_keyboard_data)
+        self.selectors.register(sys.stdin, selectors.EVENT_READ, self.got_keyboard_data)
 
         while True:
             sys.stdout.write("Type something and hit enter: ")
