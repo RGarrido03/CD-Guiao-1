@@ -6,6 +6,7 @@ import os
 import selectors
 import socket
 import sys
+from typing import TextIO
 
 from .protocol import CDProto, Message, TextMessage
 
@@ -32,7 +33,7 @@ class Client:
         msg = CDProto.register(self.name)
         CDProto.send_msg(self.socket, msg)
 
-    def got_keyboard_data(self, stdin) -> None:
+    def got_keyboard_data(self, stdin: TextIO) -> None:
         """
         Create message object and send it upon keyboard data.
         @param stdin: Standard input
