@@ -1,6 +1,9 @@
 """CD Chat client program"""
 
+import fcntl
 import logging
+import os
+import selectors
 import socket
 import sys
 
@@ -19,6 +22,9 @@ class Client:
         self.name = name
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.channel: str | None = None
+
+        self.selectors = selectors.DefaultSelector()
 
     def connect(self):
         """Connect to chat server and setup stdin flags."""
@@ -28,5 +34,22 @@ class Client:
 
     def loop(self):
         """Loop indefinetely."""
+        # set sys.stdin non-blocking
+        orig_fl = fcntl.fcntl(sys.stdin, fcntl.F_GETFL)
+        fcntl.fcntl(sys.stdin, fcntl.F_SETFL, orig_fl | os.O_NONBLOCK)
+
+        # function to be called when enter is pressed
+        def got_keyboard_data(stdin):
+            s: str = stdin.read()
+            msg = CDProto.message(s.strip(), self.channel)
+            CDProto.send_msg(self.socket, msg)
+
+        # register event
+        self.selectors.register(sys.stdin, selectors.EVENT_READ, got_keyboard_data)
+
         while True:
-            pass
+            sys.stdout.write("Type something and hit enter: ")
+            sys.stdout.flush()
+            for k, mask in self.selectors.select():
+                callback = k.data
+                callback(k.fileobj)
