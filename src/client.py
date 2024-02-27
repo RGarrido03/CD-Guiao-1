@@ -16,12 +16,15 @@ class Client:
         """Initializes chat client."""
         self.host = "127.0.0.1"
         self.port = 8000
+        self.name = name
 
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     def connect(self):
         """Connect to chat server and setup stdin flags."""
         self.socket.connect((self.host, self.port))
+        msg = CDProto.register(self.name)
+        CDProto.send_msg(self.socket, msg)
 
     def loop(self):
         """Loop indefinetely."""
