@@ -7,7 +7,7 @@ import selectors
 import socket
 import sys
 
-from .protocol import CDProto, Message
+from .protocol import CDProto, Message, TextMessage
 
 logging.basicConfig(filename=f"{sys.argv[0]}.log", level=logging.DEBUG)
 
@@ -44,6 +44,13 @@ class Client:
 
     def read_socket(self, conn: socket.socket) -> None:
         msg = CDProto.recv_msg(conn)
+
+        if isinstance(msg, TextMessage):
+            if msg.channel is not None:
+                print(f"{msg.channel}: {msg.message}")
+                return
+            print(msg.message)
+            return
         print(msg)
 
     def loop(self):
