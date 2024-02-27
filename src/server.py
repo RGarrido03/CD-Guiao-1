@@ -24,13 +24,13 @@ class Server:
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.socket, selectors.EVENT_READ, self.accept)
 
-    def accept(self, conn: socket.socket, mask: int) -> None:
+    def accept(self, conn: socket.socket) -> None:
         conn, addr = conn.accept()
         logging.debug(f"Accepted connection from {addr}")
         conn.setblocking(False)
         self.selector.register(conn, selectors.EVENT_READ, self.read)
 
-    def read(self, conn: socket.socket, mask: int) -> None:
+    def read(self, conn: socket.socket) -> None:
         try:
             msg = CDProto.recv_msg(conn)
             print(msg)
@@ -45,4 +45,4 @@ class Server:
             events = self.selector.select()
             for key, mask in events:
                 callback = key.data
-                callback(key.fileobj, mask)
+                callback(key.fileobj)
