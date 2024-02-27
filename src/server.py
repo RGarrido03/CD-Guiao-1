@@ -34,6 +34,7 @@ class Server:
         try:
             msg = CDProto.recv_msg(conn)
             print(msg)
+            logging.debug(f"Received {msg}")
             if isinstance(msg, TextMessage):
                 CDProto.send_msg(conn, msg)
         except CDProtoBadFormat as e:
