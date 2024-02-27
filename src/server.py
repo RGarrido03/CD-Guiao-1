@@ -4,7 +4,7 @@ import logging
 import selectors
 import socket
 
-from .protocol import CDProto, CDProtoBadFormat
+from .protocol import CDProto, CDProtoBadFormat, TextMessage
 
 logging.basicConfig(filename="server.log", level=logging.DEBUG)
 
@@ -34,6 +34,8 @@ class Server:
         try:
             msg = CDProto.recv_msg(conn)
             print(msg)
+            if isinstance(msg, TextMessage):
+                CDProto.send_msg(conn, msg)
         except CDProtoBadFormat as e:
             print(f"Bad format in message '{e.original_msg}'. Closing...")
             self.selector.unregister(conn)
