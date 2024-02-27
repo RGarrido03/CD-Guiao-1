@@ -42,6 +42,10 @@ class Client:
         msg = CDProto.message(s.strip(), self.channel)
         CDProto.send_msg(self.socket, msg)
 
+    def read_socket(self, conn: socket.socket) -> None:
+        msg = CDProto.recv_msg(conn)
+        print(msg)
+
     def loop(self):
         """Loop indefinetely."""
         # set sys.stdin non-blocking
@@ -50,6 +54,7 @@ class Client:
 
         # register event
         self.selectors.register(sys.stdin, selectors.EVENT_READ, self.got_keyboard_data)
+        self.selectors.register(self.socket, selectors.EVENT_READ, self.read_socket)
 
         while True:
             sys.stdout.write("Type something and hit enter: ")
