@@ -74,7 +74,7 @@ class CDProto:
     @classmethod
     def send_msg(cls, connection: socket, msg: Message):
         """Sends through a connection a Message object."""
-        msg = json.dumps(msg).encode()
+        msg = str(msg).encode()
         header = len(msg).to_bytes(2, byteorder="big")
         connection.send(header + msg)
 
