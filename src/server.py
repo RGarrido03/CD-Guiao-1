@@ -47,12 +47,11 @@ class Server:
 
         return peers
 
-    def get_channels(self, conn: socket) -> list[str]:
-        channels: list[str] = []
+    def get_channel(self, conn: socket) -> str:
         for channel in self.channels:
             if conn in self.channels[channel]:
-                channels.append(channel)
-        return channels
+                return channel
+        return "none"
 
     def read(self, conn: socket) -> None:
         try:
@@ -67,12 +66,15 @@ class Server:
                 channel = msg.channel
                 if channel not in self.channels:
                     self.channels[channel] = []
+                current_channel = self.get_channel(conn)
+                self.channels[current_channel].remove(conn)
                 self.channels[channel].append(conn)
-                self.channels["none"].remove(conn)
         except CDProtoBadFormat:
             print(f"Closing connection from {conn.getpeername()}")
-            for channel in self.get_channels(conn):
-                self.channels[channel].remove(conn)
+
+            channel = self.get_channel(conn)
+            self.channels[channel].remove(conn)
+
             self.selector.unregister(conn)
             conn.close()
 
