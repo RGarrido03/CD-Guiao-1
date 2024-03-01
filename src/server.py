@@ -4,7 +4,12 @@ import logging
 import selectors
 from socket import *
 
-from .protocol import CDProto, CDProtoBadFormat, TextMessage
+from .protocol import (
+    CDProto,
+    CDProtoBadFormat,
+    TextMessage,
+    JoinMessage,
+)
 
 logging.basicConfig(filename="server.log", level=logging.DEBUG)
 
@@ -24,14 +29,30 @@ class Server:
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.socket, selectors.EVENT_READ, self.accept)
 
-        self.connections: list[socket] = []
+        self.channels: dict[str, list[socket]] = {"none": []}
 
     def accept(self, conn: socket) -> None:
         conn, addr = conn.accept()
         logging.debug(f"Accepted connection from {addr}")
         conn.setblocking(False)
-        self.connections.append(conn)
+        self.channels["none"].append(conn)
         self.selector.register(conn, selectors.EVENT_READ, self.read)
+
+    def get_channel_peers(self, conn: socket) -> list[socket]:
+        peers: list[socket] = []
+
+        for channel in self.channels:
+            if conn in self.channels[channel]:
+                peers.extend(self.channels[channel])
+
+        return peers
+
+    def get_channels(self, conn: socket) -> list[str]:
+        channels: list[str] = []
+        for channel in self.channels:
+            if conn in self.channels[channel]:
+                channels.append(channel)
+        return channels
 
     def read(self, conn: socket) -> None:
         try:
@@ -39,11 +60,19 @@ class Server:
             print(msg)
             logging.debug(f"Received {msg}")
             if isinstance(msg, TextMessage):
-                for connection in self.connections:
+                peers = self.get_channel_peers(conn)
+                for connection in peers:
                     CDProto.send_msg(connection, msg)
+            elif isinstance(msg, JoinMessage):
+                channel = msg.channel
+                if channel not in self.channels:
+                    self.channels[channel] = []
+                self.channels[channel].append(conn)
+                self.channels["none"].remove(conn)
         except CDProtoBadFormat as e:
             print(f"Bad format in message '{e.original_msg}'. Closing...")
-            self.connections.remove(conn)
+            for channel in self.get_channels(conn):
+                self.channels[channel].remove(conn)
             self.selector.unregister(conn)
             conn.close()
 
