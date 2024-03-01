@@ -24,10 +24,13 @@ class Server:
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.socket, selectors.EVENT_READ, self.accept)
 
+        self.connections: list[socket] = []
+
     def accept(self, conn: socket) -> None:
         conn, addr = conn.accept()
         logging.debug(f"Accepted connection from {addr}")
         conn.setblocking(False)
+        self.connections.append(conn)
         self.selector.register(conn, selectors.EVENT_READ, self.read)
 
     def read(self, conn: socket) -> None:
@@ -36,9 +39,11 @@ class Server:
             print(msg)
             logging.debug(f"Received {msg}")
             if isinstance(msg, TextMessage):
-                CDProto.send_msg(conn, msg)
+                for connection in self.connections:
+                    CDProto.send_msg(connection, msg)
         except CDProtoBadFormat as e:
             print(f"Bad format in message '{e.original_msg}'. Closing...")
+            self.connections.remove(conn)
             self.selector.unregister(conn)
             conn.close()
 
