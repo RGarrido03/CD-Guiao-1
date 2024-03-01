@@ -1,14 +1,18 @@
 """Tests two clients."""
+
 import pytest
 import pexpect
 import time
+
+from pexpect import spawn
 
 TIMEOUT = 2
 
 
 @pytest.fixture
 def foo():
-    foo = pexpect.spawnu("python3 foo.py")
+    foo: spawn = pexpect.spawnu("python3 foo.py")
+    print(foo.read())
     time.sleep(1)
 
     assert foo.isalive()
@@ -21,7 +25,8 @@ def foo():
 
 @pytest.fixture
 def bar():
-    bar = pexpect.spawnu("python3 bar.py")
+    bar: spawn = pexpect.spawnu("python3 bar.py")
+    print(bar.read())
     time.sleep(1)
 
     assert bar.isalive()
