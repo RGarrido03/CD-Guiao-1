@@ -69,8 +69,8 @@ class Server:
                     self.channels[channel] = []
                 self.channels[channel].append(conn)
                 self.channels["none"].remove(conn)
-        except CDProtoBadFormat as e:
-            print(f"Bad format in message '{e.original_msg}'. Closing...")
+        except CDProtoBadFormat:
+            print(f"Closing connection from {conn.getpeername()}")
             for channel in self.get_channels(conn):
                 self.channels[channel].remove(conn)
             self.selector.unregister(conn)
