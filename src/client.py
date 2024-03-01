@@ -4,11 +4,11 @@ import fcntl
 import logging
 import os
 import selectors
-import socket
 import sys
+from socket import *
 from typing import TextIO
 
-from .protocol import CDProto, Message, TextMessage
+from .protocol import CDProto, TextMessage
 
 logging.basicConfig(filename=f"{sys.argv[0]}.log", level=logging.DEBUG)
 
@@ -22,7 +22,7 @@ class Client:
         self.port = 8000
         self.name = name
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket(AF_INET, SOCK_STREAM)
         self.channel: str | None = None
 
         self.selectors = selectors.DefaultSelector()
@@ -43,7 +43,7 @@ class Client:
         msg = CDProto.message(s.strip(), self.channel)
         CDProto.send_msg(self.socket, msg)
 
-    def read_socket(self, conn: socket.socket) -> None:
+    def read_socket(self, conn: socket) -> None:
         msg = CDProto.recv_msg(conn)
 
         if isinstance(msg, TextMessage):

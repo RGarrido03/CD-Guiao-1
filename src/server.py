@@ -2,7 +2,7 @@
 
 import logging
 import selectors
-import socket
+from socket import *
 
 from .protocol import CDProto, CDProtoBadFormat, TextMessage
 
@@ -16,7 +16,7 @@ class Server:
         self.host = ""
         self.port = 8000
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket = socket(AF_INET, SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         self.socket.listen(1000)
         self.socket.setblocking(False)
@@ -24,13 +24,13 @@ class Server:
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.socket, selectors.EVENT_READ, self.accept)
 
-    def accept(self, conn: socket.socket) -> None:
+    def accept(self, conn: socket) -> None:
         conn, addr = conn.accept()
         logging.debug(f"Accepted connection from {addr}")
         conn.setblocking(False)
         self.selector.register(conn, selectors.EVENT_READ, self.read)
 
-    def read(self, conn: socket.socket) -> None:
+    def read(self, conn: socket) -> None:
         try:
             msg = CDProto.recv_msg(conn)
             print(msg)
