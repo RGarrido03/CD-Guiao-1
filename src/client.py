@@ -6,7 +6,7 @@ import os
 import selectors
 import sys
 from socket import *
-from typing import TextIO
+from typing import TextIO, Union
 
 from .protocol import CDProto, TextMessage
 
@@ -23,7 +23,7 @@ class Client:
         self.name = name
 
         self.socket = socket(AF_INET, SOCK_STREAM)
-        self.channel: str | None = None
+        self.channel: Union[str, None] = None
 
         self.selectors = selectors.DefaultSelector()
 
