@@ -39,8 +39,12 @@ class Client:
         @param stdin: Standard input
         @return: None
         """
-        s: str = stdin.read()
-        msg = CDProto.message(s.strip(), self.channel)
+        s: str = stdin.read().strip()
+        if "/join" in s:
+            self.channel = s.split("/join ")[1]
+            msg = CDProto.join(self.channel)
+        else:
+            msg = CDProto.message(s, self.channel)
         CDProto.send_msg(self.socket, msg)
 
     def read_socket(self, conn: socket) -> None:
