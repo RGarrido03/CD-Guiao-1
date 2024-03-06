@@ -1,4 +1,3 @@
-mockselector
 mock
 pytest
 freezegun
