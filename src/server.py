@@ -3,6 +3,7 @@
 import logging
 import selectors
 from socket import *
+import socket
 
 from .protocol import (
     CDProto,
@@ -21,7 +22,7 @@ class Server:
         self.host = ""
         self.port = 8000
 
-        self.socket = socket(AF_INET, SOCK_STREAM)
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         self.socket.listen(1000)
         self.socket.setblocking(False)
@@ -29,17 +30,17 @@ class Server:
         self.selector = selectors.DefaultSelector()
         self.selector.register(self.socket, selectors.EVENT_READ, self.accept)
 
-        self.channels: dict[str, list[socket]] = {"none": []}
+        self.channels: dict[str, list[socket.socket]] = {"none": []}
 
-    def accept(self, conn: socket) -> None:
+    def accept(self, conn: socket.socket) -> None:
         conn, addr = conn.accept()
         logging.debug(f"Accepted connection from {addr}")
         conn.setblocking(False)
         self.channels["none"].append(conn)
         self.selector.register(conn, selectors.EVENT_READ, self.read)
 
-    def get_channel_peers(self, conn: socket) -> list[socket]:
-        peers: list[socket] = []
+    def get_channel_peers(self, conn: socket.socket) -> list[socket.socket]:
+        peers: list[socket.socket] = []
 
         for channel in self.channels:
             if conn in self.channels[channel]:
@@ -47,13 +48,13 @@ class Server:
 
         return peers
 
-    def get_channel(self, conn: socket) -> str:
+    def get_channel(self, conn: socket.socket) -> str:
         for channel in self.channels:
             if conn in self.channels[channel]:
                 return channel
         return "none"
 
-    def read(self, conn: socket) -> None:
+    def read(self, conn: socket.socket) -> None:
         try:
             msg = CDProto.recv_msg(conn)
             print(msg)
