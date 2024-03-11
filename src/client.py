@@ -52,11 +52,11 @@ class Client:
 
         if isinstance(msg, TextMessage):
             if msg.channel is not None:
-                print(f"{msg.channel}: {msg.message}")
+                print(f"Received {msg.channel}: {msg.message}")
                 return
-            print(msg.message)
+            print("Received", msg.message)
             return
-        print(msg)
+        print("Received", msg)
 
     def loop(self):
         """Loop indefinetely."""
@@ -69,8 +69,6 @@ class Client:
         self.selectors.register(self.socket, selectors.EVENT_READ, self.read_socket)
 
         while True:
-            sys.stdout.write("Type something and hit enter: ")
-            sys.stdout.flush()
             for k, mask in self.selectors.select():
                 callback = k.data
                 callback(k.fileobj)
