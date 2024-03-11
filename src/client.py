@@ -40,6 +40,12 @@ class Client:
         @return: None
         """
         s: str = stdin.read().strip()
+
+        if s == "exit":
+            print("Exiting...")
+            self.socket.close()
+            sys.exit(0)
+
         if "/join" in s:
             self.channel = s.split("/join ")[1]
             msg = CDProto.join(self.channel)
