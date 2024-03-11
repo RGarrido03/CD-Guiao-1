@@ -23,6 +23,7 @@ class Client:
         self.name = name
 
         self.socket = socket(AF_INET, SOCK_STREAM)
+        self.socket.settimeout(0.5)
         self.channel: Union[str, None] = None
 
         self.selectors = selectors.DefaultSelector()
